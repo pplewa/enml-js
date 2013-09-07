@@ -21,7 +21,7 @@
   function BodyHashOfENMLHash(enmlHash){
 
     var buffer = [];
-    
+
     for(var i =0 ; i<enmlHash.length; i += 2){
       buffer.push( parseInt(enmlHash[i],16)*16 + parseInt(enmlHash[i+1],16));
     }
@@ -40,7 +40,7 @@
       else
         bodyHash += String.fromCharCode(65533); // UNKNOWN
     }
-    
+
     return bodyHash;
   }
 
@@ -99,10 +99,10 @@
 
   /**
   * HTMLOfENML
-  *	Convert ENML into HTML for showing in web browsers.
+  * Convert ENML into HTML for showing in web browsers.
   *
   * @param { string } text (ENML)
-  * @param	{ Map <string (hash), url (string) || { url: (string), title: (string) } >, Optional } resources
+  * @param  { Map <string (hash), url (string) || { url: (string), title: (string) } >, Optional } resources
   * @return string - HTML
   */
   function HTMLOfENML(text, resources){
@@ -136,7 +136,7 @@
           writer.startElement('input');
           writer.writeAttribute('type', 'checkbox');
 
-        }	else if(elem == 'en-media'){
+        } else if(elem == 'en-media'){
 
           var type = null;
           var hash = null;
@@ -152,18 +152,18 @@
 
           hash = BodyHashOfENMLHash(hash);
           var resource = resources[hash];
-          
+
           if(!resource) return;
           var resourceUrl = resource.url || resource;
           var resourceTitle = resource.title || resource.url || '';
-          
+
           if(type.match('image')) {
             writer.startElement('img');
             writer.writeAttribute('title', resourceTitle);
 
           } else if(type.match('audio')) {
-            
-            
+
+
             writer.writeElement('p', resourceTitle);
             writer.startElement('audio');
             writer.writeAttribute('controls', '');
@@ -193,7 +193,7 @@
           if(width) writer.writeAttribute ('width', width);
           if(height) writer.writeAttribute('height', height);
 
-        }	else {
+        } else {
           writer.startElement(elem);
         }
 
@@ -243,7 +243,7 @@
 
   /**
   * TodosOfENML
-  *	Extract data of all TODO(s) in ENML text.
+  * Extract data of all TODO(s) in ENML text.
   *
   * @param { string } text (ENML)
   * @return { Array [ { text: (string), done: (bool) } ] } -
@@ -274,7 +274,7 @@
             if(attr[0] == 'checked' && attr[1] == 'true') checked = true;
           });
 
-        }	else {
+        } else {
           if(onTodo){
             todos.push({text: text, checked: checked});
           }
@@ -299,9 +299,9 @@
 
   /**
   * CheckTodoInENML
-  *	Rewrite ENML content by changing check/uncheck value of the TODO in given position.
+  * Rewrite ENML content by changing check/uncheck value of the TODO in given position.
   *
-  * @param { string } text (ENML)
+  * @param { string } html (ENML)
   * @param { int }  index
   * @param { bool } check
   * @return string - ENML (the new content)
@@ -346,7 +346,33 @@
     return writer.toString();
   }
 
+  /**
+  * ENMLOfHTML
+  *
+  * @param { string } text (ENML)
+  * @return string - ENML (the new content)
+  */
+  function ENMLOfHTML(html) {
+    var writer = new XMLWriter();
 
+    writer.startDocument = writer.startDocument || writer.writeStartDocument;
+    writer.endDocument = writer.endDocument || writer.writeEndDocument;
+    writer.startDocument = writer.startElement || writer.writeStartElement;
+    writer.startDocument = writer.endElement || writer.writeEndElement;
+
+    writer.startDocument('1.0', 'UTF-8', false);
+    writer.write('<!DOCTYPE en-note SYSTEM "http://xml.evernote.com/pub/enml2.dtd">');
+    writer.write("\n");
+    writer.startElement('en-note');
+    writer.writeAttribute('style', 'word-wrap: break-word; -webkit-nbsp-mode: space; -webkit-line-break: after-white-space;');
+    writer.startElement('html');
+    writer.endElement();
+
+    writer.endElement();
+    writer.endDocument();
+
+    return writer.toString().replace('<html/>', html);
+  }
 
   var XMLWriter;
   var SaxParser;
@@ -361,6 +387,7 @@
     window.enml.ENMLOfPlainText = ENMLOfPlainText;
     window.enml.HTMLOfENML = HTMLOfENML;
     window.enml.PlainTextOfENML = PlainTextOfENML;
+    window.enml.ENMLOfHTML = ENMLOfHTML;
   }
   else{
 
